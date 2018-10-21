@@ -1,0 +1,332 @@
+﻿@{
+    ViewBag.Title = "Index";
+    Layout = "~/Views/Shared/_Index.cshtml";
+}
+<link href="~/Content/js/select2/select2.min.css" rel="stylesheet" />
+<script src="~/Content/js/select2/select2.min.js"></script>
+<script src="~/Content/js/bootstrap-paginator/bootstrap-paginator.js"></script>
+
+<style>
+    tbody {
+        display: table-row-group;
+        vertical-align: middle;
+        border-color: inherit;
+    }
+    /*.gridPanel tbody::before
+    {
+      content: '';
+      display: block;
+      height: 15px;
+    }*/
+    th, td {
+        text-align: center;
+        vertical-align: middle !important;
+    }
+
+    .table-input {
+        height: 30px;
+        line-height: 30px;
+        padding-top: 0px;
+        padding-bottom: 0px;
+        padding-right: 0px;
+        padding-left: 5px;
+        resize: none;
+        border-radius: 0px;
+        box-shadow: none;
+        text-align: center;
+    }
+
+    .pagination>.active>a, .pagination>.active>a:focus, .pagination>.active>a:hover, .pagination>.active>span, .pagination>.active>span:focus, .pagination>.active>span:hover {
+        z-index: 2;
+        color: #fff;
+        cursor: default;
+        background-color: #1abc9c;
+        border-color: #1abc9c;
+    }
+</style>
+<script>
+    window.addEventListener("message", function (e) {
+        if (e.data.returnSuccess) {
+            gridList()
+        }
+    }, false);
+    var jsonArr = [];
+    var page = 1;
+    var rows = 2;
+    $(function () {
+        initControl();
+        gridList(page);
+        //setNavigation();
+    })
+    function gridList(curPage) {
+        var postData = $("#form1").formSerialize();
+        $.ajax({
+            url: '/ProductDemo/ProductList/GetGridJsonall',
+            type: "post",
+            data: { page: curPage, rows: rows },
+            dataType: "json",
+            success: function (red) {
+                var data = red;
+                if (data.total > 0) {
+                    $(".gridPanel tbody").remove();
+                    for (var a = 0; a < data.rows.length; a++) {
+                        addDate(data.rows[a])
+                    }
+
+                    //分页
+                    //设置分页属性及处理
+                    var element = $( '#grid_paging' );
+                    if ( data.total > 0 )
+                    {
+                        var options = {
+                            bootstrapMajorVersion: 3,
+                            currentPage: curPage,
+                            numberOfPages: rows,
+                            totalPages: Math.ceil( data.total / rows ),
+                            onPageChanged: function ( event, oldPage, newPage )
+                            {
+                                gridList( newPage);  //页面变化时触发内容更新
+                            }
+                        }
+                        element.bootstrapPaginator( options );
+                    } else
+                    {
+                        element.html( "" );
+                    }
+                }
+            },
+            
+        });
+        $("#btn_search").click(function () {
+            $gridList.jqGrid('setGridParam', {
+                postData: { keyword: $("#txt_keyword").val() },
+            }).trigger('reloadGrid');
+        });
+    }
+    //添加数据
+    function addDate(opj) {
+        if ($("tbody#" + opj.F_Id).length <= 0) {
+            add_thead(opj);
+        }
+        add_tbody(opj);
+    }
+    function initControl() {
+        $("#Producttype").bindSelect()
+        $("#CategoryId").bindSelect({
+            url: "/ProductManage/Category/GetTreeSelectJson"
+        });
+
+    }
+    //查询
+    function btn_select() {
+        gridList();
+    }
+    //清空查询框
+    function btn_clean() {
+        $("#form1 input").val("");
+        $("#form1 #F_ParentId").select2().val("0").trigger("change")
+        $("#form1 #Producttype").select2().val("0").trigger("change")
+        
+    }
+    function btn_add() {
+        $.modalOpen({
+            id: "Form",
+            title: "新增产品",
+            url: "/ProductDemo/ProductList/Form",
+            width: "1350px",
+            height: "750px",
+            btn: null,
+        });
+    }
+    //编辑
+    function btn_edit(strF_Id) {
+        var keyValue = strF_Id;
+        $.modalOpen({
+            id: "Form",
+            title: "修改产品",
+            url: "/ProductDemo/ProductList/Form?keyValue=" + keyValue,
+            width: "1350px",
+            height: "750px",
+            btn: null,
+            success: function () {
+                gridList();
+            }
+            
+        });
+    }
+    //删除
+    function btn_delete(strF_Id) {
+        $.deleteForm({
+            url: "/ProductDemo/ProductList/DeleteForm",
+            param: { keyValue: strF_Id },
+            success: function () {
+                gridList();
+            }
+        })
+    }
+    //查看详情 
+    function btn_details(strF_Id) {
+        var keyValue = strF_Id;
+        $.modalOpen({
+            id: "Details",
+            title: "查看产品详情",
+            url: "/ProductDemo/ProductList?keyValue=" + keyValue,
+            width: "550px",
+            height: "620px",
+            btn: null,
+        });
+    }
+    //添加导航数据
+    function add_thead(opj) {
+        var _html = "";
+        _html += '    <tbody style="border-top: 20px solid #1ABC9C" id="' + opj.F_Id + '">';
+            _html += '<tr style="background-color:#eee">';
+            _html += '            <td style="border-right-style: hidden;vertical-align:middle">1<input type="checkbox" style="vertical-align:middle;margin-left:8px" /></td>';
+            _html += '            <td colspan="11" style="text-align:left">';
+            _html += '                <div>';
+            _html += '                    <label style="margin-right:15px;width: 15%;"><span><strong>ItemID：</strong></span><span style="color:blue">' + opj.ProductId + '</span></label>';
+            _html += '                    <label style="margin-right:15px;width: 10%;"><span><strong>类型：</strong></span><span>' + ((opj.Producttype == 1 || opj.Producttype == "1")?  "单品":"多属性") + '</span></label>';
+            _html += '                    <label style="margin-right:15px;width: 10%;"><span><strong>分类：</strong></span><span >' + opj.Category_FullName + '</span></label>';
+            _html += '                    <label style="margin-right:15px;width: 20%;"><span><strong>供应商：</strong></span><span>' + opj.SupplierName + '</span></label>';
+            _html += '                    <label style="margin-right:15px;width: 35%;"><span><strong>备注：</strong></span><span>' + opj.F_Description + '</span></label>';
+            _html += '                </div>';
+            _html += '                <div>';
+            _html += '                    <label class="row-mod" style="margin-right:15px;width: 26%;"><span><strong>创建时间：</strong></span><span>' + opj.F_CreatorTime + '</span></label>';
+            _html += '                    <label class="row-mod" style="margin-right:15px"><span><strong>采购连接：</strong></span><a style="color:blue;" href="' + opj.PurchaseAddress + '">' + opj.PurchaseAddress + '</a></label>';
+            _html += '                </div>';
+            _html += '            </td>';
+            _html += '        </tr>';
+            _html += '</tbody>';
+            $(".gridPanel table").append(_html);
+    }
+    //添加子数据
+    function add_tbody(opj) {
+        var _html = "";
+        if ($("tbody#" + opj.F_Id + " tr").length > 1) {
+            $(".gridPanel tbody#" + opj.F_Id + " [rowspan]").attr("rowspan", $("tbody#" + opj.F_Id + " tr").length);
+            _html += '<tr>';
+            _html += '    <td  style="text-align:left;border-right-style: hidden;;border-right: 1px solid #beaaaa;">中文名称：' + opj.ProductCnName + '英文名称：' + opj.ProductEnName + '</td>';
+            _html += '    <td  style="border-right-style: hidden; color:blue">' + opj.SKU + '</td>';
+            _html += '    <td  style="border-right-style: hidden">' + opj.PurchaseCost + '</td>';
+            _html += '    <td  style="border-right-style: hidden">' + opj.TransportCost + '</td>';
+            _html += '    <td  style="border-right-style: hidden">' + opj.OtherCost + '</td>';
+            _html += '    <td  style="border-right-style: hidden;border-right: 1px solid #beaaaa;">' + opj.OtherCost + '</td>';
+            _html += '    <td style="border-right-style: hidden">' + opj.Long + '*' + opj.Wide + '*' + opj.High + '</td>';
+            _html += '    <td  style="border-right-style: hidden">' + opj.HWeight + '</td>';
+            _html += '    <td style="border-right-style: hidden">' + opj.GWeight + '</td>';
+            _html += '    <td  style="border-right-style: hidden;border-right: 1px solid #beaaaa;">' + opj.SWeight + '</td>';
+            _html += '</tr>';
+        } else {
+            _html += '<tr>';
+            _html += '    <td rowspan="1" style="border-right-style: hidden;;border-right: 1px solid #beaaaa;"><img src="' + opj.ImgUrl + '" style="width:100px; height:100px" /></td>';
+            _html += '    <td  style="text-align:left;border-right-style: hidden;;border-right: 1px solid #beaaaa;">中文名称：' + opj.ProductCnName + '英文名称：' + opj.ProductEnName + '</td>';
+            _html += '    <td  style="border-right-style: hidden; color:blue">' + opj.SKU + '</td>';
+            _html += '    <td  style="border-right-style: hidden">' + opj.PurchaseCost + '</td>';
+            _html += '    <td  style="border-right-style: hidden">' + opj.TransportCost + '</td>';
+            _html += '    <td style="border-right-style: hidden">' + opj.OtherCost + '</td>';
+            _html += '    <td  style="border-right-style: hidden;border-right: 1px solid #beaaaa;">' + opj.OtherCost + '</td>';
+            _html += '    <td  style="border-right-style: hidden">' + opj.Long + '*' + opj.Wide + '*' + opj.High + '</td>';
+            _html += '    <td  style="border-right-style: hidden">' + opj.HWeight + '</td>';
+            _html += '    <td  style="border-right-style: hidden">' + opj.GWeight + '</td>';
+            _html += '    <td  style="border-right-style: hidden;border-right: 1px solid #beaaaa;">' + opj.SWeight + '</td>';
+            _html += '    <td  rowspan="1"><a class="btn btn-primary dropdown-text" onclick="btn_edit(\'' + opj.F_Id + '\')"><i class="fa fa-pencil-square-o"></i>编辑</a>|<a class="btn btn-primary dropdown-text" onclick="btn_delete(\'' + opj.F_Id + '\')"><i class="fa fa-trash-o"></i>删除</a></td>';
+            _html += '</tr>';
+        }
+        $(".gridPanel tbody#" + opj.F_Id + "").append(_html);
+    }
+
+</script>
+<form id="form1">
+    <div class="widget-body">
+        <div class="step-content" id="wizard-steps" style="border-left: none; border-bottom: none; border-right: none;">
+            <div class="step-pane active" id="step-1" style="margin: 0px; margin-bottom: 0px;">
+                <div class="panel panel-default">
+                    <div class="panel-body" style="width: 95%;">
+                        <table class="form">
+                            <tr>
+                                <th class="formTitle">中文标题：</th>
+                                <td class="formValue">
+                                    <input id="ProductCnName" name="ProductCnName" type="text" class="form-control " />
+                                </td>
+                                <th class="formTitle">ItemID：</th>
+                                <td class="formValue">
+                                    <input id="ProductId" name="ProductId" type="text" class="form-control " />
+                                </td>
+                                <th class="formTitle">SKU：</th>
+
+                                <td class="formValue">
+                                    <input id="MapSKU" name="MapSKU" type="text" class="form-control " />
+                                </td>
+                                <th class="formTitle">分类：</th>
+                                <td class="formValue">
+                                    <select id="CategoryId" name="CategoryId" class="form-control ">
+                                        <option value="0">选择分类</option>
+                                    </select>
+                                </td>
+                                <th class="formTitle">类型：</th>
+                                <td class="formValue">
+                                    <select id="Producttype" name="Producttype" class="form-control ">
+                                        <option value="0">选择类型</option>
+                                        <option value="1">多属性</option>
+                                        <option value="2">单品</option>
+                                    </select>
+                                </td>
+                                <th class="formTitle" >
+                                    <a id="NF-select"  class="btn btn-primary " onclick="btn_select()">&nbsp;<i class="fa fa-search"></i>查询</a>
+                                </th>
+                                <td class="formValue" style="text-align:left">
+                                    <a id="NF-clean" class="btn btn-primary " style="vertical-align:text-top; margin-top:0;margin-left:4px;"  onclick="btn_clean()">&nbsp;<i class="fa fa-trash-o"></i>清空</a>
+                                </td>
+                            </tr>
+                            <tr>
+                                <th class="formTitle">英文标题：</th>
+                                <td class="formValue">
+                                    <input id="ProductEnName" name="ProductEnName" type="text" class="form-control " />
+                                </td>
+                                <th class="formTitle">供应商：</th>
+                                <td class="formValue">
+                                    <input id="SupplierName" name="SupplierName" type="text" class="form-control " />
+                                </td>
+                            </tr>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</form>
+    <div class="topPanel">
+        <div class="toolbar">
+            <div class="btn-group">
+                <a id="NF-add"  class="btn btn-primary dropdown-text" onclick="btn_add()"><i class="fa fa-plus"></i>新建产品</a>
+            </div>
+        </div>
+    </div>
+    <div class="gridPanel">
+        <table class="table table-striped table-bordered table-hover table-head-mod"  cellpadding="0" cellspacing="0" border="0">
+            <thead>
+                <tr style="background-color:#ddd;">
+                    <th class="col1-mod"  style="border-right: 1px solid #beaaaa;"><input type="checkbox" style="vertical-align:text-top; margin-top:0;margin-left:4px" />序号</th>
+                    <th class="col2-mod"  style="border-right: 1px solid #beaaaa;">产品信息</th>
+                    <th class="col3-mod">SKU</th>
+                    <th class="col4-mod">采购价</th>
+                    <th class="col5-mod">采购运费</th>
+                    <th class="col6-mod">杂费</th>
+                    <th class="col7-mod" style="border-right: 1px solid #beaaaa;" >库存</th>
+                    <th class="col8-mod">包装尺寸</th>
+                    <th class="col9-mod">净重</th>
+                    <th class="col10-mod">包装重</th>
+                    <th class="col11-mod" style="border-right: 1px solid #beaaaa;" >毛重</th>
+                    <th class="col12-mod">操作</th>
+                </tr>
+            </thead>
+        </table>
+        <div class="paging-toolbar">
+            <ul id='grid_paging'></ul>
+        </div>
+    </div>
+
+
+
+
+

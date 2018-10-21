@@ -1,0 +1,136 @@
+﻿@{
+    ViewBag.Title = "Form";
+    Layout = "~/Views/Shared/_Form.cshtml";
+}
+<script>
+    var keyValue = $.request("keyValue");
+    $(function () {
+        initControl();
+        if (!!keyValue) {
+            $.ajax({
+                url: "/SystemManage/Account/GetFormJson",
+                data: { keyValue: keyValue },
+                dataType: "json",
+                async: false,
+                success: function (data) {
+                    $("#form1").formSerialize(data);
+                }
+            });
+        }
+    });
+    function initControl() {
+        $("#AccountSite").bindSelect(),
+        $("#PlatformId").bindSelect({
+            url: "/SystemManage/Platform/GetGridJson",
+            id: "F_Id",
+            text: "PlatformEnName"
+        });
+        $("#F_Description").keydown(function () {
+            if (this.value.length >= 200) {
+                if (event.which!=8) {
+                    event.returnValue = false;
+                }
+                
+            }
+        });
+       
+    }
+    function submitForm() {
+        if (!$('#form1').formValid()) {
+            return false;
+        }
+        if (!validate()) {
+            return false;
+        }
+        $.submitForm({
+            url: "/SystemManage/Account/SubmitForm?keyValue=" + keyValue,
+            param: $("#form1").formSerialize(),
+            success: function () {
+                $.currentWindow().$("#gridList").resetSelection();
+                $.currentWindow().$("#gridList").trigger("reloadGrid");
+            }
+        })
+    }
+    function validate() {
+            $("#PlatformTax").parent().removeClass('has-error');
+            $("#PlatformTax").removeClass('error');
+            var value = $("#PlatformTax").val()
+            var patrn = /^([1-9]\d*|0)(\.\d*[1-9])?$/;
+            if (!patrn.exec(value)) {
+                $("#PlatformTax").parent().addClass('has-error');
+                $("#PlatformTax").addClass('error');
+                $("#PlatformTax").after('<i class="form-control-feedback fa fa-exclamation-circle error" data-placement="left" data-toggle="tooltip" title="" data-original-title="请正确填写佣金"></i>');
+                return false
+            } else {
+                if (parseFloat(value)>100) {
+                    $("#PlatformTax").parent().addClass('has-error');
+                    $("#PlatformTax").addClass('error');
+                    $("#PlatformTax").after('<i class="form-control-feedback fa fa-exclamation-circle error" data-placement="left" data-toggle="tooltip" title="" data-original-title="请正确填写佣金"></i>');
+                    return false
+                }
+            }
+            return true;
+    }
+    
+    //
+</script>
+
+<form id="form1">
+    <div style="padding-top: 20px; margin-right: 20px;">
+        <table class="form">
+            <tr>
+                <th class="formTitle">账号名称</th>
+                <td class="formValue" colspan="3">
+                    <input id="AccountName" name="AccountName" type="text" class="form-control required" maxlength="50"/>
+                </td>
+            </tr>
+            <tr>
+                <th class="formTitle">站点</th>
+                <td class="formValue" colspan="3">
+                    <select id="AccountSite" name="AccountSite" class="form-control required">
+                        <option value="US">US</option>
+                        <option value="EU">EU</option>
+                        <option value="GB">GB</option>
+                        <option value="MY">MY</option>
+                        <option value="SG">SG</option>
+                        <option value="TW">TW</option>
+                        <option value="ID">ID</option>
+                        <option value="PH">PH</option>
+                        <option value="THA">THA</option>
+                        <option value="KE">KE</option>
+                        <option value="NG">NG</option>
+                        <option value="WU">WU</option>
+                        <option value="CN">CN</option>
+                    </select>
+                </td>
+            </tr>
+            <tr>
+                <th class="formTitle">所属平台</th>
+                <td class="formValue" colspan="3">
+                    <select id="PlatformId" name="PlatformId" class="form-control required">
+                        <option value="">==请选择==</option>
+                    </select>
+                </td>
+            </tr>
+
+            <tr>
+                <th class="formTitle">佣金</th>
+                <td class="formValue "  style="width: 100px;" >
+                    @*<input id="PlatformTax" name="PlatformTax" type="text" onkeyup="value=validation(value)" class="form-control required" />*@
+                        <input id="PlatformTax" name="PlatformTax" type="text"  autocomplete="off" onkeyup="value=value.replace(/[^\d{1,}\.\d{1,}|\d{1,}]/g,'')" class="form-control required" />
+                </td>
+                <th class="formTitle" style="text-align:left">%</th>
+            </tr>
+
+            <tr>
+                <th class="formTitle" valign="top" style="padding-top: 5px;">
+                    备注
+                </th>
+                <td class="formValue" colspan="3">
+                    <textarea id="F_Description" name="F_Description" class="form-control" style="height: 100px;"></textarea>
+                </td>
+            </tr>
+        </table>
+    </div>
+</form>
+

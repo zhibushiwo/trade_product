@@ -1,0 +1,79 @@
+﻿@{
+    ViewBag.Title = "Form";
+    Layout = "~/Views/Shared/_Form.cshtml";
+}
+
+<script>
+    var keyValue = $.request("keyValue");
+    $(function () {
+        initControl();
+        if (!!keyValue) {
+            $.ajax({
+                url: "/SystemManage/Logistics/GetFormJson",
+                data: { keyValue: keyValue },
+                dataType: "json",
+                async: false,
+                success: function (data) {
+                    $("#form1").formSerialize(data);
+                }
+            });
+        }
+    });
+    function initControl() {
+        $("#LogisticsTypeID").bindSelect();
+
+        $("#F_Description").keydown(function () {
+            if (this.value.length >= 200) {
+                if (event.which != 8) {
+                    event.returnValue = false;
+                }
+            }
+        });
+    }
+    function submitForm() {
+        if (!$('#form1').formValid()) {
+            return false;
+        }
+        $.submitForm({
+            url: "/SystemManage/Logistics/SubmitForm?keyValue=" + keyValue,
+            param: $("#form1").formSerialize(),
+            success: function () {
+                $.currentWindow().$("#gridList").resetSelection();
+                $.currentWindow().$("#gridList").trigger("reloadGrid");
+            }
+        })
+    }
+</script>
+
+<form id="form1">
+    <div style="padding-top: 20px; margin-right: 20px;">
+        <table class="form">
+            <tr>
+                <th class="formTitle">物流名称</th>
+                <td class="formValue" colspan="3">
+                    <input id="LogisticsName" name="LogisticsName" type="text" class="form-control required" maxlength="100"/>
+                    @*<textarea id="LogisticsName" name="LogisticsName" class="form-control" ></textarea>*@
+                </td>
+            </tr>
+
+            <tr>
+                <th class="formTitle">类型</th>
+                <td class="formValue" colspan="3">
+                    <select id="LogisticsTypeID" name="LogisticsTypeID" class="form-control required">
+                        <option value="1">国内</option>
+                        <option value="2">平台</option>
+                    </select>
+                </td>
+            </tr>
+            <tr>
+                <th class="formTitle" valign="top" style="padding-top: 5px;" >
+                    备注
+                </th>
+                <td class="formValue" colspan="3">
+                    <textarea id="F_Description" name="F_Description" class="form-control" style="height:100px" ></textarea>
+                </td>
+            </tr>
+        </table>
+    </div>
+</form>
+

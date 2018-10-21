@@ -1,0 +1,509 @@
+﻿@{
+    ViewBag.Title = "Index";
+    Layout = "~/Views/Shared/_Index.cshtml";
+}
+<link href="~/Content/js/select2/select2.min.css" rel="stylesheet" />
+<script src="~/Content/js/select2/select2.min.js"></script>
+<script>
+    var jsonArr = [];
+    $(function () {
+       
+        initControl();
+        gridList();
+        setNavigation();
+    })
+    function gridList() {
+        var $gridList = $("#gridList");
+        $gridList.dataGrid({
+            url: "/ProductDemo/ProductList/GetGridJsonALL",
+            height: $(window).height() - 96,
+            colModel: [
+                { label: "选择", name: "F_Id", hidden: true, key: true },
+                {
+                    label: "<input type=\"checkbox\" onchange='changeALL(this)'>", name: "", width: 25, align: "center",
+                    formatter: function (cellvalue, options, rowObject) {
+                        var index = jsonArr.indexOf(parseInt(rowObject.F_Id));
+                        if (index > -1) {
+                            return '<input type=\"checkbox\" checked="checked"  onchange="change(' + rowObject.F_Id + ',this)" class=\"checkbo\"/>'
+                        } else {
+                            return '<input type=\"checkbox\" onchange="change(' + rowObject.F_Id + ',this)" class=\"checkbo\"/>'
+                        }
+                        
+                    }
+                },
+            
+                { label: "图片地址", name: "ImgUrl", width: 100, align: 'left' },
+                { label: "英文名称", name: "ProductEnName", width: 100, align: 'left' },
+                { label: "中文名称", name: "ProductCnName", width: 100, align: 'left' },
+                { label: "分类", name: "Producttype", width: 100, align: 'left' },
+                { label: 'SKU', name: 'MapSKU', width: 100, align: 'left' },
+                { label: '参考连接', name: 'ConsultUrl', width: 100, align: 'left' },
+                { label: "英文备注", name: "ProEnDescription", width: 100, align: 'left' },
+                { label: "中文备注", name: "ProCnDescription", width: 100, align: 'left' },
+                //{ label: '采购价', name: 'SKU', width: 150, align: 'left' },
+                //{ label: '采购运费', name: 'SKU', width: 120, align: 'left' },
+                //{ label: '杂费', name: 'SKU', width: 150, align: 'left' },
+                //{ label: '库存', name: 'SKU', width: 150, align: 'left' },
+                //{ label: '包装尺寸', name: 'SKU', width: 150, align: 'left' },
+                //{ label: '净重', name: 'HWeight', width: 150, align: 'left' },
+                //{ label: '包装重', name: 'SKU', width: 150, align: 'left' },
+                //{ label: '毛重', name: 'GWeight', width: 150, align: 'left' }
+
+            ],
+            pager: "#gridPager",
+            sortname: 'F_Id desc',
+            viewrecords: true
+        });
+        $("#btn_search").click(function () {
+            $gridList.jqGrid('setGridParam', {
+                postData: { keyword: $("#txt_keyword").val() },
+            }).trigger('reloadGrid');
+        });
+    }
+    function setNavigation() {
+        var _html = "";
+        _html += '<div class="panel panel-default" >';
+        _html += '        <form id="form1" >';
+        _html += '            <div class="widget-body">';
+        _html += '                <div class="step-content" id="wizard-steps" style="border-left: none; border-bottom: none; border-right: none;">';
+        _html += '                    <div class="step-pane active" id="step-1" style="margin:10px 30px 0 0; margin-bottom: 0px;  ">';
+        _html += '                       <div class="panel panel-default" style="background-color:#eee">';
+        _html += '                            <div class="panel-body" style="width: 100%;">';
+        _html += '                                <table class="form">';
+        _html += '                                    <tr>';
+        _html += '                                        <th class="formTitle">ItemID：</th>';
+        _html += '                                        <td class="formValue"></td>';
+        _html += '                                        <th class="formTitle">SKU：</th>';
+        _html += '                                        <td class="formValue"></td>';
+        _html += '                                        <th class="formTitle">分类：</th>';
+        _html += '                                        <td class="formValue"></td>';
+        _html += '                                        <th class="formTitle">类型：</th>';
+        _html += '                                        <td class="formValue"></td>';
+        _html += '                                        <th class="formTitle"></th>';
+        _html += '                                        <td class="formValue"></td>';
+        _html += '                                    </tr>';
+        _html += '                                    <tr>';
+        _html += '                                        <th class="formTitle">英文标题：</th>';
+        _html += '                                        <td class="formValue"></td>';
+        _html += '                                         <th class="formTitle">供应商：</th>';
+        _html += '                                        <td class="formValue"></td>';
+        _html += '                                    </tr>';
+        _html += '                                </table>';
+        _html += '                            </div>';
+        _html += '                        </div>';
+        _html += '                    </div>';
+        _html += '                </div>';
+        _html += '            </div>';
+        _html += '        </form>';
+        _html += '   </div>';
+        $("#gview_gridList .ui-jqgrid-hdiv:first").after(_html);
+    }
+    function initControl() {
+        $("#HGroupID").bindSelect()
+     
+        $("#F_ParentId").bindSelect({
+            url: "/ProductManage/Category/GetTreeSelectJson"
+        });
+    }
+    function change(id, obj) {
+        if ($(obj).prop("checked")) {
+            jsonArr.push(id);
+        } else {
+            var index = jsonArr.indexOf(id);
+            if (index > -1) {
+                jsonArr.splice(index, 1);
+            }
+        }
+    }
+    function changeALL(obj) {
+        //获取checked属性
+        if ($(obj).prop("checked")) {
+            //设置checked属性
+            $(".checkbo").prop("checked", true)
+            $("#gridList tbody").find("tr[id]").each(function () {
+                var id = $(this).attr("id");
+                var index = jsonArr.indexOf(parseInt(id));
+                if (index < 0) {
+                    jsonArr.push(parseInt(id));
+                }
+            })
+        } else {
+            //设置checked属性
+            $(".checkbo").prop("checked", false)
+            $("input[name='checkboxall']").prop("checked", false);
+            $("#gridList tbody").find("tr[id]").each(function () {
+                var id = $(this).attr("id");
+                var index = jsonArr.indexOf(parseInt(id));
+                if (index > -1) {
+                    jsonArr.splice(index, 1);
+                }
+            })
+        }
+    };
+    function btn_add() {
+        
+        $.modalOpen({
+            id: "Form",
+            title: "新增产品",
+            url: "/ProductDemo/ProductList/Form",
+            width: "1350px",
+            height: "750px",
+            btn: null,
+        });
+    }
+    function btn_edit() {
+        var keyValue = $("#gridList").jqGridRowValue().Czybm;
+        $.modalOpen({
+            id: "Form",
+            title: "修改产品",
+            url: "/ProductDemo/ProductList?keyValue=" + keyValue,
+            width: "1350px",
+            height: "750px",
+            callBack: function (iframeId) {
+                top.frames[iframeId].submitForm();
+            }
+        });
+    }
+    function btn_delete() {
+        $.deleteForm({
+            url: "/ProductDemo/ProductList/DeleteForm",
+            param: { keyValue: $("#gridList").jqGridRowValue().Czybm },
+            success: function () {
+                $.currentWindow().$("#gridList").trigger("reloadGrid");
+            }
+        })
+    }
+    function btn_details() {
+        var keyValue = $("#gridList").jqGridRowValue().Czybm;
+        $.modalOpen({
+            id: "Details",
+            title: "查看产品详情",
+            url: "/ProductDemo/ProductList?keyValue=" + keyValue,
+            width: "550px",
+            height: "620px",
+            btn: null,
+        });
+    }
+</script>
+<form id="form1">
+    <div class="widget-body">
+        <div class="step-content" id="wizard-steps" style="border-left: none; border-bottom: none; border-right: none;">
+            <div class="step-pane active" id="step-1" style="margin: 0px; margin-bottom: 0px;">
+                <div class="panel panel-default">
+                    <div class="panel-body" style="width: 95%;">
+                        <table class="form">
+                            <tr>
+                                <th class="formTitle">中文标题：</th>
+                                <td class="formValue">
+                                    <input id="HXJ" name="HXJ" type="text" class="form-control " />
+                                </td>
+                                <th class="formTitle">ItemID：</th>
+                                <td class="formValue">
+                                    <input id="HXJ" name="HXJ" type="text" class="form-control " />
+                                </td>
+                                <th class="formTitle">SKU：</th>
+
+                                <td class="formValue">
+                                    <input id="HXJ" name="HXJ" type="text" class="form-control " />
+                                </td>
+                                <th class="formTitle">分类：</th>
+                                <td class="formValue">
+                                    <select id="F_ParentId" name="F_ParentId" class="form-control required">
+                                        <option value="0">分类1</option>
+                                        @*<option value="2">分类2</option>
+                                        <option value="3">分类3</option>*@
+                                    </select>
+                                </td>
+                                <th class="formTitle">类型：</th>
+                                <td class="formValue">
+                                    <select id="HGroupID" name="HGroupID" class="form-control required">
+                                        <option value="1">多属性</option>
+                                        <option value="2">单品</option>
+                                    </select>
+                                </td>
+                                <th class="formTitle"></th>
+                                <td class="formValue">
+                                    <a id="NF-select" class="btn btn-primary " onclick="btn_select()">&nbsp;<i class="fa fa-search"></i>查询</a>
+                                    <a id="NF-clean" class="btn btn-primary " onclick="btn_clean()">&nbsp;<i class="fa fa-trash-o"></i>清空</a>
+                                </td>
+                            </tr>
+                            <tr>
+                                <th class="formTitle">英文标题：</th>
+                                <td class="formValue">
+                                    <input id="HXJ" name="HXJ" type="text" class="form-control " />
+                                </td>
+                                <th class="formTitle">供应商：</th>
+                                <td class="formValue">
+                                    <input id="HXJ" name="HXJ" type="text" class="form-control " />
+                                </td>
+                            </tr>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</form>
+    <div class="topPanel">
+        <div class="toolbar">
+            @*<div class="btn-group">
+                <a class="btn btn-primary" onclick="$.reload()"><span class="glyphicon glyphicon-refresh"></span></a>
+            </div>*@
+            <div class="btn-group">
+                <a id="NF-add"  class="btn btn-primary dropdown-text" onclick="btn_add()"><i class="fa fa-plus"></i>新建产品</a>
+            </div>
+            <div class="operate">
+                <ul class="nav nav-pills">
+                    <li class="first">已选中<span>1</span>项</li>
+                    <li><a id="NF-edit" onclick="btn_edit()"><i class="fa fa-pencil-square-o"></i>修改产品</a></li>
+                    <li><a id="NF-delete" onclick="btn_delete()"><i class="fa fa-trash-o"></i>删除产品</a></li>
+                    <li><a id="NF-Details" onclick="btn_details()"><i class="fa fa-search-plus"></i>查看产品详情</a></li>
+                </ul>
+                <a href="javascript:;" class="close"></a>
+            </div>
+            <script>$('.toolbar').authorizeButton()</script>
+        </div>
+
+    </div>
+    <div class="gridPanel">
+        <table id="gridList"></table>
+        <div id="gridPager"></div>
+    </div>
+
+
+
+
+<div>
+@*<div class="gridPanel">
+    <div class="ui-jqgrid " id="gbox_gridList" dir="ltr" style="width: 2062px;">
+        <div class="jqgrid-overlay ui-overlay" id="lui_gridList"></div>
+        <div class="loading row" id="load_gridList">
+            读取中...
+        </div>
+        <div class="ui-jqgrid-view table-responsive" role="grid" id="gview_gridList" style="width: 2062px;">
+            <div class="ui-jqgrid-titlebar ui-jqgrid-caption" style="display: none;">
+                <span class="ui-jqgrid-title"></span>
+            </div>
+            <div class="ui-jqgrid-hdiv" style="width: 2060px;">
+                <div class="ui-jqgrid-hbox">
+                    <table class="ui-jqgrid-htable ui-common-table table table-bordered" style="width:2001px" role="presentation" aria-labelledby="gbox_gridList">
+                        <thead>
+                            <tr class="ui-jqgrid-labels" role="row">
+                                <th id="gridList_rn" style="text-align: center; width: 28px;" role="columnheader" class="ui-th-column ui-th-ltr ">
+                                    <div class="ui-th-div" id="jqgh_gridList_rn">
+                                        <span class="s-ico" style="display:none"><span sort="asc" class="ui-grid-ico-sort ui-icon-asc ui-sort-ltr ui-disabled glyphicon glyphicon-triangle-top"></span><span sort="desc" class="ui-grid-ico-sort ui-icon-desc ui-sort-ltr ui-disabled glyphicon glyphicon-triangle-bottom"></span></span>
+                                    </div>
+                                </th>
+                                <th id="gridList_F_Id" style="width: 150px; display: none;" role="columnheader" class="ui-th-column ui-th-ltr ">
+                                    <span class="ui-jqgrid-resize ui-jqgrid-resize-ltr" style="cursor: col-resize;">&nbsp;</span>
+                                    <div class="ui-th-div ui-jqgrid-sortable" id="jqgh_gridList_F_Id">
+                                        选择
+                                        <span class="s-ico" style="display:none"><span sort="asc" class="ui-grid-ico-sort ui-icon-asc ui-sort-ltr ui-disabled glyphicon glyphicon-triangle-top"></span><span sort="desc" class="ui-grid-ico-sort ui-icon-desc ui-sort-ltr ui-disabled glyphicon glyphicon-triangle-bottom"></span></span>
+                                    </div>
+                                </th>
+                                <th id="gridList_" style="text-align: center; width: 25px;" role="columnheader" class="ui-th-column ui-th-ltr ">
+                                    <span class="ui-jqgrid-resize ui-jqgrid-resize-ltr" style="cursor: col-resize;">&nbsp;</span>
+                                    <div class="ui-th-div ui-jqgrid-sortable" id="jqgh_gridList_">
+                                        <input type="checkbox" onchange="changeALL(this)" />
+                                        <span class="s-ico" style="display:none"><span sort="asc" class="ui-grid-ico-sort ui-icon-asc ui-sort-ltr ui-disabled glyphicon glyphicon-triangle-top"></span><span sort="desc" class="ui-grid-ico-sort ui-icon-desc ui-sort-ltr ui-disabled glyphicon glyphicon-triangle-bottom"></span></span>
+                                    </div>
+                                </th>
+                                <th id="gridList_Czybm" style="text-align: left; width: 100px;" role="columnheader" class="ui-th-column ui-th-ltr ">
+                                    <span class="ui-jqgrid-resize ui-jqgrid-resize-ltr" style="cursor: col-resize;">&nbsp;</span>
+                                    <div class="ui-th-div ui-jqgrid-sortable" id="jqgh_gridList_Czybm">
+                                        产品信息
+                                        <span class="s-ico" style="display:none"><span sort="asc" class="ui-grid-ico-sort ui-icon-asc ui-sort-ltr ui-disabled glyphicon glyphicon-triangle-top"></span><span sort="desc" class="ui-grid-ico-sort ui-icon-desc ui-sort-ltr ui-disabled glyphicon glyphicon-triangle-bottom"></span></span>
+                                    </div>
+                                </th>
+                                <th id="gridList_SKU" style="text-align: left; width: 100px;" role="columnheader" class="ui-th-column ui-th-ltr ">
+                                    <span class="ui-jqgrid-resize ui-jqgrid-resize-ltr" style="cursor: col-resize;">&nbsp;</span>
+                                    <div class="ui-th-div ui-jqgrid-sortable" id="jqgh_gridList_SKU">
+                                        SKU
+                                        <span class="s-ico" style="display:none"><span sort="asc" class="ui-grid-ico-sort ui-icon-asc ui-sort-ltr ui-disabled glyphicon glyphicon-triangle-top"></span><span sort="desc" class="ui-grid-ico-sort ui-icon-desc ui-sort-ltr ui-disabled glyphicon glyphicon-triangle-bottom"></span></span>
+                                    </div>
+                                </th>
+                                <th id="gridList_SKU" style="text-align: left; width: 150px;" role="columnheader" class="ui-th-column ui-th-ltr ">
+                                    <span class="ui-jqgrid-resize ui-jqgrid-resize-ltr" style="cursor: col-resize;">&nbsp;</span>
+                                    <div class="ui-th-div ui-jqgrid-sortable" id="jqgh_gridList_SKU">
+                                        采购价
+                                        <span class="s-ico" style="display:none"><span sort="asc" class="ui-grid-ico-sort ui-icon-asc ui-sort-ltr ui-disabled glyphicon glyphicon-triangle-top"></span><span sort="desc" class="ui-grid-ico-sort ui-icon-desc ui-sort-ltr ui-disabled glyphicon glyphicon-triangle-bottom"></span></span>
+                                    </div>
+                                </th>
+                                <th id="gridList_SKU" style="text-align: left; width: 120px;" role="columnheader" class="ui-th-column ui-th-ltr ">
+                                    <span class="ui-jqgrid-resize ui-jqgrid-resize-ltr" style="cursor: col-resize;">&nbsp;</span>
+                                    <div class="ui-th-div ui-jqgrid-sortable" id="jqgh_gridList_SKU">
+                                        采购运费
+                                        <span class="s-ico" style="display:none"><span sort="asc" class="ui-grid-ico-sort ui-icon-asc ui-sort-ltr ui-disabled glyphicon glyphicon-triangle-top"></span><span sort="desc" class="ui-grid-ico-sort ui-icon-desc ui-sort-ltr ui-disabled glyphicon glyphicon-triangle-bottom"></span></span>
+                                    </div>
+                                </th>
+                                <th id="gridList_SKU" style="text-align: left; width: 500px;" role="columnheader" class="ui-th-column ui-th-ltr ">
+                                    <span class="ui-jqgrid-resize ui-jqgrid-resize-ltr" style="cursor: col-resize;">&nbsp;</span>
+                                    <div class="ui-th-div ui-jqgrid-sortable" id="jqgh_gridList_SKU">
+                                        杂费
+                                        <span class="s-ico" style="display:none"><span sort="asc" class="ui-grid-ico-sort ui-icon-asc ui-sort-ltr ui-disabled glyphicon glyphicon-triangle-top"></span><span sort="desc" class="ui-grid-ico-sort ui-icon-desc ui-sort-ltr ui-disabled glyphicon glyphicon-triangle-bottom"></span></span>
+                                    </div>
+                                </th>
+                                <th id="gridList_SKU" style="text-align: left; width: 500px;" role="columnheader" class="ui-th-column ui-th-ltr ">
+                                    <span class="ui-jqgrid-resize ui-jqgrid-resize-ltr" style="cursor: col-resize;">&nbsp;</span>
+                                    <div class="ui-th-div ui-jqgrid-sortable" id="jqgh_gridList_SKU">
+                                        库存
+                                        <span class="s-ico" style="display:none"><span sort="asc" class="ui-grid-ico-sort ui-icon-asc ui-sort-ltr ui-disabled glyphicon glyphicon-triangle-top"></span><span sort="desc" class="ui-grid-ico-sort ui-icon-desc ui-sort-ltr ui-disabled glyphicon glyphicon-triangle-bottom"></span></span>
+                                    </div>
+                                </th>
+                                <th id="gridList_SKU" style="text-align: left; width: 150px;" role="columnheader" class="ui-th-column ui-th-ltr ">
+                                    <span class="ui-jqgrid-resize ui-jqgrid-resize-ltr" style="cursor: col-resize;">&nbsp;</span>
+                                    <div class="ui-th-div ui-jqgrid-sortable" id="jqgh_gridList_SKU">
+                                        包装尺寸
+                                        <span class="s-ico" style="display:none"><span sort="asc" class="ui-grid-ico-sort ui-icon-asc ui-sort-ltr ui-disabled glyphicon glyphicon-triangle-top"></span><span sort="desc" class="ui-grid-ico-sort ui-icon-desc ui-sort-ltr ui-disabled glyphicon glyphicon-triangle-bottom"></span></span>
+                                    </div>
+                                </th>
+                                <th id="gridList_HWeight" style="text-align: left; width: 150px;" role="columnheader" class="ui-th-column ui-th-ltr ">
+                                    <span class="ui-jqgrid-resize ui-jqgrid-resize-ltr" style="cursor: col-resize;">&nbsp;</span>
+                                    <div class="ui-th-div ui-jqgrid-sortable" id="jqgh_gridList_HWeight">
+                                        净重
+                                        <span class="s-ico" style="display:none"><span sort="asc" class="ui-grid-ico-sort ui-icon-asc ui-sort-ltr ui-disabled glyphicon glyphicon-triangle-top"></span><span sort="desc" class="ui-grid-ico-sort ui-icon-desc ui-sort-ltr ui-disabled glyphicon glyphicon-triangle-bottom"></span></span>
+                                    </div>
+                                </th>
+                                <th id="gridList_SKU" style="text-align: left; width: 150px;" role="columnheader" class="ui-th-column ui-th-ltr ">
+                                    <span class="ui-jqgrid-resize ui-jqgrid-resize-ltr" style="cursor: col-resize;">&nbsp;</span>
+                                    <div class="ui-th-div ui-jqgrid-sortable" id="jqgh_gridList_SKU">
+                                        包装重
+                                        <span class="s-ico" style="display:none"><span sort="asc" class="ui-grid-ico-sort ui-icon-asc ui-sort-ltr ui-disabled glyphicon glyphicon-triangle-top"></span><span sort="desc" class="ui-grid-ico-sort ui-icon-desc ui-sort-ltr ui-disabled glyphicon glyphicon-triangle-bottom"></span></span>
+                                    </div>
+                                </th>
+                                <th id="gridList_GWeight" style="text-align: left; width: 150px;" role="columnheader" class="ui-th-column ui-th-ltr ">
+                                    <span class="ui-jqgrid-resize ui-jqgrid-resize-ltr" style="cursor: col-resize;">&nbsp;</span>
+                                    <div class="ui-th-div ui-jqgrid-sortable" id="jqgh_gridList_GWeight">
+                                        毛重
+                                        <span class="s-ico" style="display:none"><span sort="asc" class="ui-grid-ico-sort ui-icon-asc ui-sort-ltr ui-disabled glyphicon glyphicon-triangle-top"></span><span sort="desc" class="ui-grid-ico-sort ui-icon-desc ui-sort-ltr ui-disabled glyphicon glyphicon-triangle-bottom"></span></span>
+                                    </div>
+                                </th>
+                                <th id="gridList_" style="text-align: center; width: 363px;" role="columnheader" class="ui-th-column ui-th-ltr ">
+                                    <span class="ui-jqgrid-resize ui-jqgrid-resize-ltr" style="cursor: col-resize;">&nbsp;</span>
+                                    <div class="ui-th-div ui-jqgrid-sortable" id="jqgh_gridList_">
+                                        操作
+                                        <span class="s-ico" style="display:none"><span sort="asc" class="ui-grid-ico-sort ui-icon-asc ui-sort-ltr ui-disabled glyphicon glyphicon-triangle-top"></span><span sort="desc" class="ui-grid-ico-sort ui-icon-desc ui-sort-ltr ui-disabled glyphicon glyphicon-triangle-bottom"></span></span>
+                                    </div>
+                                </th>
+                            </tr>
+                        </thead>
+                    </table>
+                </div>
+               
+            </div>
+            <div class="panel panel-default" >
+                <form id="form1" >
+                    <div class="widget-body">
+                        <div class="step-content" id="wizard-steps" style="border-left: none; border-bottom: none; border-right: none;">
+                            <div class="step-pane active" id="step-1" style="margin:10px 30px 0 0; margin-bottom: 0px;  ">
+                                <div class="panel panel-default" style="background-color:#eee">
+                                    <div class="panel-body" style="width: 100%;">
+                                        <table class="form">
+                                            <tr>
+                                                <th class="formTitle">ItemID：</th>
+                                                <td class="formValue"></td>
+                                                <th class="formTitle">SKU：</th>
+                                                <td class="formValue"></td>
+                                                <th class="formTitle">分类：</th>
+                                                <td class="formValue"></td>
+                                                <th class="formTitle">类型：</th>
+                                                <td class="formValue"></td>
+                                                <th class="formTitle"></th>
+                                                <td class="formValue"></td>
+                                            </tr>
+                                            <tr>
+                                                <th class="formTitle">英文标题：</th>
+                                                <td class="formValue"></td>
+                                                <th class="formTitle">供应商：</th>
+                                                <td class="formValue"></td>
+                                            </tr>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="ui-jqgrid-bdiv" style="height: 416px; width: 2060px;">
+                    <div style="position:relative;">
+                        <div></div>
+                        <table id="gridList" tabindex="0" role="presentation" aria-multiselectable="false" aria-labelledby="gbox_gridList" class="ui-jqgrid-btable ui-common-table table table-bordered" style="width: 2001px;">
+                            <tbody>
+
+                                <tr class="jqgfirstrow" role="row">
+                                    <td role="gridcell" style="height:0px;width:28px;"></td>
+                                    <td role="gridcell" style="height:0px;width:150px;display:none;"></td>
+                                    <td role="gridcell" style="height:0px;width:25px;"></td>
+                                    <td role="gridcell" style="height:0px;width:100px;"></td>
+                                    <td role="gridcell" style="height:0px;width:100px;"></td>
+                                    <td role="gridcell" style="height:0px;width:150px;"></td>
+                                    <td role="gridcell" style="height:0px;width:120px;"></td>
+                                    <td role="gridcell" style="height:0px;width:150px;"></td>
+                                    <td role="gridcell" style="height:0px;width:300px;"></td>
+                                    <td role="gridcell" style="height:0px;width:150px;"></td>
+                                    <td role="gridcell" style="height:0px;width:150px;"></td>
+                                    <td role="gridcell" style="height:0px;width:150px;"></td>
+                                    <td role="gridcell" style="height:0px;width:150px;"></td>
+                                    <td role="gridcell" style="height:0px;width:363px;"></td>
+                                </tr>
+                                <tr role="row" id="f1f8ea30-1afb-4c3f-bf96-d250c9f38b21" tabindex="0" class="jqgrow ui-row-ltr active success" aria-selected="true">
+                                    <td role="gridcell" class="jqgrid-rownum " style="text-align:center;width: 28px;" title="1" aria-describedby="gridList_rn">1</td>
+                                    <td role="gridcell" style="display:none;" title="f1f8ea30-1afb-4c3f-bf96-d250c9f38b21" aria-describedby="gridList_F_Id">f1f8ea30-1afb-4c3f-bf96-d250c9f38b21</td>
+                                    <td role="gridcell" style="text-align:center;" title="" aria-describedby="gridList_"><input type="checkbox" class="checkbo" /></td>
+                                    <td role="gridcell" style="text-align:left;" title="" aria-describedby="gridList_Czybm">&nbsp;</td>
+                                    <td role="gridcell" style="text-align:left;" title="7" aria-describedby="gridList_SKU">7</td>
+                                    <td role="gridcell" style="text-align:left;" title="7" aria-describedby="gridList_SKU">7</td>
+                                    <td role="gridcell" style="text-align:left;" title="7" aria-describedby="gridList_SKU">7</td>
+                                    <td role="gridcell" style="text-align:left;" title="7" aria-describedby="gridList_SKU">7</td>
+                                    <td role="gridcell" style="text-align:left;" title="7" aria-describedby="gridList_SKU">7</td>
+                                    <td role="gridcell" style="text-align:left;" title="7" aria-describedby="gridList_SKU">7</td>
+                                    <td role="gridcell" style="text-align:left;" title="1.1" aria-describedby="gridList_HWeight">1.1</td>
+                                    <td role="gridcell" style="text-align:left;" title="7" aria-describedby="gridList_SKU">7</td>
+                                    <td role="gridcell" style="text-align:left;" title="1.1" aria-describedby="gridList_GWeight">1.1</td>
+                                    <td role="gridcell" style="text-align:center;" title="&nbsp;&nbsp;&nbsp;编辑&nbsp;&nbsp;" aria-describedby="gridList_"><a id="NF-select" class="btn btn-primary " onclick="btn_select()">&nbsp;<i class="fa fa-pencil-square-o"></i>&nbsp;&nbsp;编辑&nbsp;&nbsp;</a></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+       </div>
+        <div class="ui-jqgrid-resize-mark" id="rs_mgridList">
+            &nbsp;
+        </div>
+        <div id="gridPager" class="ui-jqgrid-pager" dir="ltr" style="width: 2062px;">
+            <div id="pg_gridPager" class="ui-pager-control" role="group">
+                <table class="ui-pg-table ui-common-table ui-pager-table table">
+                    <tbody>
+                        <tr>
+                            <td id="gridPager_center" style="white-space: pre; width: 360px;">
+                                <table class="ui-pg-table ui-common-table ui-paging-pager">
+                                    <tbody>
+                                        <tr>
+                                            <td id="first_gridPager" class="ui-pg-button ui-disabled" title=""><span class="glyphicon glyphicon-step-backward"></span></td>
+                                            <td id="prev_gridPager" class="ui-pg-button ui-disabled" title=""><span class="glyphicon glyphicon-backward"></span></td>
+                                            <td class="ui-pg-button ui-disabled"><span class="ui-separator"></span></td>
+                                            <td id="input_gridPager" dir="ltr"> <input class="ui-pg-input form-control" type="text" size="2" maxlength="7" value="0" role="textbox" /> 共 <span id="sp_1_gridPager">1</span> 页</td>
+                                            <td class="ui-pg-button ui-disabled"><span class="ui-separator"></span></td>
+                                            <td id="next_gridPager" class="ui-pg-button ui-disabled" title=""><span class="glyphicon glyphicon-forward"></span></td>
+                                            <td id="last_gridPager" class="ui-pg-button ui-disabled" title=""><span class="glyphicon glyphicon-step-forward"></span></td>
+                                            <td dir="ltr"><select class="ui-pg-selbox form-control" role="listbox" title=""><option role="option" value="50" selected="selected">50</option><option role="option" value="100">100</option><option role="option" value="150">150</option></select></td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </td>
+                            <td id="gridPager_left" align="left"></td>
+                            <td id="gridPager_right" align="right">
+                                <div dir="ltr" style="text-align:right" class="ui-paging-info">
+                                    显示第 1 - 2 条记录　检索到 2 条记录
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>*@
+
+    </div>

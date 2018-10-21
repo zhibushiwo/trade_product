@@ -1,0 +1,213 @@
+﻿
+    @*<script src="~/Content/js/jquery/jquery-2.1.1.min.js"></script>*@
+    @*<script src="../../Script/MyAjaxForm.js"></script>
+    <script src="~/Content/js/jquery-1.9.0.js"></script>
+
+    <script type="text/javascript">
+        $(function () {
+            $("#btnSub").click(function () {
+                $("#frm").ajaxSubmit({
+                    url: "/ProductManage/Product/ProcessImgUpload",
+                    type: "Post",
+                    success: afterUpload
+                });
+                return false;
+            });
+        });
+        function afterUpload(data) {
+            $("#result").html("<img src='" + data + "'/>");
+        }
+    </script>*@
+
+
+@*<div>
+    <form action="/ProductManage/Product/ProcessImgUpload" data-ajax="true" data-ajax-method="Post" data-ajax-success="afterUpload" enctype="multipart/form-data" id="frm" method="post">
+        <input type="file" name="imgFile" id="imgFile" />
+        <input type="submit" id="btnSub" value="异步上传图片" />
+    </form>
+    <div id="result"></div>
+</div>*@
+
+
+
+@{
+    ViewBag.Title = "Form";
+    Layout = "~/Views/Shared/_Form.cshtml";
+}
+
+
+
+
+<script>
+
+    var keyValue = $.request("keyValue");
+
+    $(function () {
+        $("#btnSub").click(function () {
+            $("#frm").ajaxSubmit({
+                url: "/ProductManage/Product/ProcessImgUpload",
+                type: "Post",
+                success: afterUpload
+            });
+            return false;
+        });
+    });
+    function afterUpload(data) {
+        $("#result").html("<img src='" + data + "'/>");
+    }
+
+
+
+    $(function () {
+        initControl();
+        if (!!keyValue) {
+            $.ajax({
+                url: "/ProductManage/Product/GetFormJson",
+                data: { keyValue: keyValue },
+                dataType: "json",
+                async: false,
+                success: function (data) {
+                    $("#form1").formSerialize(data);
+                }
+            });
+        }
+    });
+    function initControl() {
+        $("#SupplierId").bindSelect({
+            url: "/ProductManage/Product/GetTreeSelectJson",
+        });
+    }
+    function submitForm() {
+        if (!$('#form1').formValid()) {
+            return false;
+        }
+        $.submitForm({
+            url: "/ProductManage/Product/SubmitForm?keyValue=" + keyValue,
+            param: $("#form1").formSerialize(),
+            success: function () {
+                $.currentWindow().$("#gridList").resetSelection();
+                $.currentWindow().$("#gridList").trigger("reloadGrid");
+            }
+        })
+    }
+</script>
+
+<div>
+    <form action="/ProductManage/Product/ProcessImgUpload" data-ajax="true" data-ajax-method="Post" data-ajax-success="afterUpload" enctype="multipart/form-data" id="frm" method="post">
+        <input type="file" name="imgFile" id="imgFile" />
+        <input type="submit" id="btnSub" value="异步上传图片" />
+    </form>
+    <div id="result"></div>
+</div>
+
+
+
+<form action="/ProductManage/Product/ProcessImgUpload" data-ajax="true" data-ajax-method="Post" data-ajax-success="afterUpload" enctype="multipart/form-data" method="post" id="form1">
+    <div style="margin-top: 10px; margin-left: 10px; margin-right: 10px;">
+        <ul class="nav nav-tabs">
+            <li class="active"><a href="#">基本信息</a></li>
+            @*<li><a href="#">扩展信息</a></li>*@
+        </ul>
+        <div style="padding-top: 20px; margin-right: 30px;">
+            <table class="form">
+
+
+                    @*<tr>
+                        <th class="formTitle">上传图片</th>
+                        <td  class="formValue" colspan="3">
+                            <input id="imgFile" name="imgFile" type="file" class="form-control" />
+                            <input type="submit" id="btnSub" value="异步上传图片" />
+                        </td>
+                    </tr>*@
+  
+
+                    <tr>
+                        <th class="formTitle">图片路径</th>
+                        <td class="formValue" colspan="3">
+                            <input id="img_url" name="img_url" type="text" class="form-control" />
+                        </td>
+                    </tr>
+
+                    <tr>
+                        <th class="formTitle">产品中文名称</th>
+                        <td class="formValue" colspan="3">
+                            <input id="ProductCnName" name="ProductCnName" type="text" class="form-control" />
+                        </td>
+                    </tr>
+
+                    <tr>
+                        <th class="formTitle">产品英文名称</th>
+                        <td class="formValue" colspan="3">
+                            <input id="ProductEnName" name="ProductEnName" type="text" class="form-control" />
+                        </td>
+                    </tr>
+
+                    <tr>
+                        <th class="formTitle">SKU</th>
+                        <td class="formValue" colspan="3">
+                            <input id="SKU" name="SKU" type="text" class="form-control" runat=server/>
+                        </td>
+                    </tr>
+
+                    <tr>
+                        <th class="formTitle">分类</th>
+                        <td class="formValue" colspan="3">
+                            <input id="CategoryId" name="CategoryId" type="text" class="form-control" />
+                        </td>
+                    </tr>
+
+                    <tr>
+                        <th class="formTitle">关键字</th>
+                        <td class="formValue" colspan="3">
+                            <input id="ProKeyword" name="ProKeyword" type="text" class="form-control" />
+                        </td>
+                    </tr>
+
+                    <tr>
+                        <th class="formTitle">毛重</th>
+                        <td class="formValue" colspan="3">
+                            <input id="GWeight" name="GWeight" type="text" class="form-control" />
+                        </td>
+                    </tr>
+
+                    <tr>
+                        <th class="formTitle">净重</th>
+                        <td class="formValue" colspan="3">
+                            <input id="HWeight" name="HWeight" type="text" class="form-control" />
+                        </td>
+                    </tr>
+
+                    <tr>
+                        <th class="formTitle">长</th>
+                        <td class="formValue" colspan="3">
+                            <input id="Long" name="Long" type="text" class="form-control" />
+                        </td>
+                    </tr>
+
+                    <tr>
+                        <th class="formTitle">宽</th>
+                        <td class="formValue" colspan="3">
+                            <input id="Wide" name="Wide" type="text" class="form-control" />
+                        </td>
+                    </tr>
+
+                    <tr>
+                        <th class="formTitle">高</th>
+                        <td class="formValue" colspan="3">
+                            <input id="High" name="High" type="text" class="form-control" />
+                        </td>
+                    </tr>
+
+                    <tr>
+                        <th class="formTitle">描述</th>
+                        <td class="formValue" colspan="3">
+                            <input id="ProDescription" name="ProDescription" type="text" class="form-control" />
+                        </td>
+                    </tr>
+
+
+</table>
+        </div>
+    </div>
+</form>
+

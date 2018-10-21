@@ -1,0 +1,76 @@
+﻿@{
+    ViewBag.Title = "Form";
+    Layout = "~/Views/Shared/_Form.cshtml";
+}
+<script>
+    var keyValue = $.request("keyValue");
+    $(function () {
+        initControl();
+        if (!!keyValue) {
+            $.ajax({
+                url: "/SystemManage/Platform/GetFormJson",
+                data: { keyValue: keyValue },
+                dataType: "json",
+                async: false,
+                success: function (data) {
+                    $("#form1").formSerialize(data);
+                }
+            });
+        }
+    });
+    function initControl() {
+        $("#F_Id").bindSelect({
+            url: "/SystemManage/Platform/GetTreeSelectJson"
+        });
+    }
+    function submitForm() {
+        if (!$('#form1').formValid()) {
+            return false;
+        }
+        $.submitForm({
+            url: "/SystemManage/Platform/SubmitForm?keyValue=" + keyValue,
+            param: $("#form1").formSerialize(),
+            success: function () {
+                $.currentWindow().$("#gridList").resetSelection();
+                $.currentWindow().$("#gridList").trigger("reloadGrid");
+            }
+        })
+    }
+</script>
+
+<form id="form1">
+    <div style="padding-top: 20px; margin-right: 20px;">
+        <table class="form">
+            <tr>
+                <th class="formTitle">平台编号</th>
+                <td class="formValue" colspan="3">
+                    <input id="PlatformCode" name="PlatformCode" type="text" class="form-control required" />
+                </td>
+            </tr>
+
+            <tr>
+                <th class="formTitle">中文名称</th>
+                <td class="formValue" colspan="3">
+                    <input id="PlatformCnName" name="PlatformCnName" type="text" class="form-control required" />
+                </td>
+            </tr>
+
+            <tr>
+                <th class="formTitle">英文名称</th>
+                <td class="formValue" colspan="3">
+                    <input id="PlatformEnName" name="PlatformEnName" type="text" class="form-control" />
+                </td>
+            </tr>
+
+            <tr>
+                <th class="formTitle" valign="top" style="padding-top: 5px;" >
+                    备注
+                </th>
+                <td class="formValue"  colspan="3">
+                    <textarea id="F_Description" name="F_Description" class="form-control " ></textarea>
+                </td>
+            </tr>
+        </table>
+    </div>
+</form>
+

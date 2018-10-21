@@ -1,0 +1,133 @@
+﻿@{
+    ViewBag.Title = "Index";
+    Layout = "~/Views/Shared/_Index.cshtml";
+}
+<script>
+    $(function () {
+        gridList();
+    })
+    function gridList() {
+        var $gridList = $("#gridList");
+        $gridList.dataGrid({
+            treeGrid: true,
+            treeGridModel: "adjacency",
+            url: "/ProductManage/Listing/GetGridJson",
+            height: $(window).height() - 96,
+            colModel: [
+                { label: "主键", name: "F_Id", hidden: true, key: true },
+                { label: 'ItemID', name: 'ItemID', width: 120, align: 'left' },
+                { label: 'SKU', name: 'SKU', width: 120, align: 'left' },
+                { label: '平台', name: 'PlatformEnName', width: 80, align: 'center' },
+                { label: '分类', name: 'Category_FullName', width: 100, align: 'center' },
+                { label: '英文名称', name: 'ProductEnName', width: 100, align: 'center' },
+                { label: '中文名称', name: 'ProductCnName', width: 100, align: 'center' },
+                { label: '关键字', name: 'ProKeyword', width: 100, align: 'left' },
+                { label: '采购价', name: 'Purchase_price', width: 60, align: 'left' },
+                { label: '采购运费', name: 'Purchase_shipping', width: 60, align: 'left' },
+                { label: '杂费', name: 'Other_shipping', width: 60, align: 'left' },
+                { label: '派送运费', name: 'Send_Price', width: 60, align: 'left' },
+                { label: '售价', name: 'Sell_Price', width: 60, align: 'left' },
+                { label: '买家支付运费', name: 'Pay_shipping', width: 60, align: 'left' },
+                { label: '盈亏', name: 'Profit', width: 60, align: 'left' },
+                { label: '描述', name: 'ProDescription', width: 200, Height: 30 , align: 'left' },
+
+                { label: "净重", name: "HWeight", width: 80, align: "center" },
+                { label: '毛重', name: 'GWeight', width: 80, align: 'center' },
+                { label: '长', name: 'Long', width: 80, align: 'center' },
+                { label: '宽', name: 'Wide', width: 80, align: 'center' },
+                { label: '高', name: 'High', width: 80, align: 'center' },
+                { label: '供应商', name: 'SupplierName', width: 80, align: 'center' },
+                { label: '链接', name: 'Link', width: 80, align: 'center' },
+            ]
+        });
+        $("#btn_search").click(function () {
+            $gridList.jqGrid('setGridParam', {
+                postData: { keyword: $("#txt_keyword").val() },
+            }).trigger('reloadGrid');
+        });
+    }
+    function btn_add() {
+        $.modalOpen({
+            id: "Form",
+            title: "新增Listing",
+            url: "/ProductManage/Listing/Form",
+            width: "700px",
+            height: "520px",
+            callBack: function (iframeId) {
+                top.frames[iframeId].submitForm();
+            }
+        });
+    }
+    function btn_edit() {
+        var keyValue = $("#gridList").jqGridRowValue().F_Id;
+        $.modalOpen({
+            id: "Form",
+            title: "修改",
+            url: "/ProductManage/Listing/Form?keyValue=" + keyValue,
+            width: "700px",
+            height: "520px",
+            callBack: function (iframeId) {
+                top.frames[iframeId].submitForm();
+            }
+        });
+    }
+    function btn_delete() {
+        $.deleteForm({
+            url: "/ProductManage/Listing/DeleteForm",
+            param: { keyValue: $("#gridList").jqGridRowValue().F_Id },
+            success: function () {
+                $.currentWindow().$("#gridList").resetSelection();
+                $.currentWindow().$("#gridList").trigger("reloadGrid");
+            }
+        })
+    }
+    function btn_details() {
+        var keyValue = $("#gridList").jqGridRowValue().F_Id;
+        $.modalOpen({
+            id: "Details",
+            title: "查看",
+            url: "/ProductManage/Listing/Details?keyValue=" + keyValue,
+            width: "700px",
+            height: "560px",
+            btn: null,
+        });
+    }
+</script>
+
+<div class="topPanel">
+    <div class="toolbar">
+        <div class="btn-group">
+            <a class="btn btn-primary" onclick="$.reload()"><span class="glyphicon glyphicon-refresh"></span></a>
+        </div>
+        <div class="btn-group">
+            <a id="Lis-add" authorize="yes" class="btn btn-primary dropdown-text" onclick="btn_add()"><i class="fa fa-plus"></i>新增Listing</a>
+        </div>
+        <div class="operate">
+            <ul class="nav nav-pills">
+                <li class="first">已选中<span>1</span>项</li>
+                <li><a id="Lis-edit" authorize="yes" onclick="btn_edit()"><i class="fa fa-pencil-square-o"></i>修改Listing</a></li>
+                <li><a id="Lis-del" authorize="yes" onclick="btn_delete()"><i class="fa fa-trash-o"></i>删除Listing</a></li>
+                <li><a id="Lis-detail" authorize="yes" onclick="btn_details()"><i class="fa fa-search-plus"></i>查看Listing</a></li>
+            </ul>
+            <a href="javascript:;" class="close"></a>
+        </div>
+        <script>$('.toolbar').authorizeButton();</script>
+    </div>
+    <div class="search">
+        <table>
+            <tr>
+                <td>
+                    <div class="input-group">
+                        <input id="txt_keyword" type="text" class="form-control" placeholder="请输入要查询关键字" style="width: 200px;">
+                        <span class="input-group-btn">
+                            <button id="btn_search" type="button" class="btn  btn-primary"><i class="fa fa-search"></i></button>
+                        </span>
+                    </div>
+                </td>
+            </tr>
+        </table>
+    </div>
+</div>
+<div class="gridPanel" style="overflow:scroll; border:1px">
+    <table id="gridList"></table>
+</div>
